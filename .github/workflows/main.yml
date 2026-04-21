@@ -1,13 +1,13 @@
-name: Premium Feature Management Workflow
+name: Premium Feature Management
 
 on:
   workflow_dispatch:
       inputs:
             action:
-                    description: 'Action to perform'
+                    description: 'Select action to perform'
                             required: true
-                                    default: 'login'
-                                            type: choice
+                                    type: choice
+                                            default: 'login'
                                                     options:
                                                               - login
                                                                         - start-feature-usage
@@ -15,39 +15,38 @@ on:
                                                                                             - stop-feature-usage
 
                                                                                             jobs:
-                                                                                              premium-feature-management:
+                                                                                              execute-workflow:
                                                                                                   runs-on: ubuntu-latest
-                                                                                                      
+                                                                                                      name: Execute Premium Feature Management Action
                                                                                                           steps:
-                                                                                                                - name: Checkout Repository
+                                                                                                                - name: Checkout code
                                                                                                                         uses: actions/checkout@v4
-                                                                                                                              
-                                                                                                                                    - name: Authenticate to Premium Feature Management
-                                                                                                                                            if: github.event.inputs.action == 'login'
-                                                                                                                                                    run: |
-                                                                                                                                                              echo "Authenticating to Premium Feature Management..."
-                                                                                                                                                                        echo "This would run the login skill to obtain credentials"
-                                                                                                                                                                              
-                                                                                                                                                                                    - name: Start Feature Usage
-                                                                                                                                                                                            if: github.event.inputs.action == 'start-feature-usage'
-                                                                                                                                                                                                    run: |
-                                                                                                                                                                                                              echo "Starting feature usage tracking..."
-                                                                                                                                                                                                                        echo "Feature operations require authentication"
-                                                                                                                                                                                                                              
-                                                                                                                                                                                                                                    - name: Get Feature Usage
-                                                                                                                                                                                                                                            if: github.event.inputs.action == 'get-feature-usage'
-                                                                                                                                                                                                                                                    run: |
-                                                                                                                                                                                                                                                              echo "Retrieving feature usage information..."
-                                                                                                                                                                                                                                                                        echo "Checking active usage for the feature"
-                                                                                                                                                                                                                                                                              
-                                                                                                                                                                                                                                                                                    - name: Stop Feature Usage
-                                                                                                                                                                                                                                                                                            if: github.event.inputs.action == 'stop-feature-usage'
-                                                                                                                                                                                                                                                                                                    run: |
-                                                                                                                                                                                                                                                                                                              echo "Stopping feature usage tracking..."
-                                                                                                                                                                                                                                                                                                                        echo "Ending the feature usage session"
-                                                                                                                                                                                                                                                                                                                              
-                                                                                                                                                                                                                                                                                                                                    - name: Display Results
-                                                                                                                                                                                                                                                                                                                                            if: always()
-                                                                                                                                                                                                                                                                                                                                                    run: |
-                                                                                                                                                                                                                                                                                                                                                              echo "Workflow execution completed"
-                                                                                                                                                                                                                                                                                                                                                                        echo "Action performed: ${{ github.event.inputs.action }}"
+                                                                                                                        
+                                                                                                                              - name: Display Action
+                                                                                                                                      run: |
+                                                                                                                                                echo "Running action: ${{ github.event.inputs.action }}"
+                                                                                                                                                
+                                                                                                                                                      - name: Execute Login
+                                                                                                                                                              if: github.event.inputs.action == 'login'
+                                                                                                                                                                      run: |
+                                                                                                                                                                                echo "Executing login skill..."
+                                                                                                                                                                                          echo "Authentication would be performed here"
+                                                                                                                                                                                          
+                                                                                                                                                                                                - name: Execute Start Feature Usage
+                                                                                                                                                                                                        if: github.event.inputs.action == 'start-feature-usage'
+                                                                                                                                                                                                                run: |
+                                                                                                                                                                                                                          echo "Starting feature usage tracking..."
+                                                                                                                                                                                                                          
+                                                                                                                                                                                                                                - name: Execute Get Feature Usage
+                                                                                                                                                                                                                                        if: github.event.inputs.action == 'get-feature-usage'
+                                                                                                                                                                                                                                                run: |
+                                                                                                                                                                                                                                                          echo "Getting feature usage information..."
+                                                                                                                                                                                                                                                          
+                                                                                                                                                                                                                                                                - name: Execute Stop Feature Usage
+                                                                                                                                                                                                                                                                        if: github.event.inputs.action == 'stop-feature-usage'
+                                                                                                                                                                                                                                                                                run: |
+                                                                                                                                                                                                                                                                                          echo "Stopping feature usage tracking..."
+                                                                                                                                                                                                                                                                                          
+                                                                                                                                                                                                                                                                                                - name: Workflow Complete
+                                                                                                                                                                                                                                                                                                        run: |
+                                                                                                                                                                                                                                                                                                             
