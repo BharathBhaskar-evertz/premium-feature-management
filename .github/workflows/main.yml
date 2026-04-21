@@ -1,0 +1,114 @@
+name: Premium Feature Management
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Action to perform"
+        required: true
+        type: choice
+        options:
+          - start
+          - stop
+          - get
+      env:
+        description: "Environment"
+        required: false
+        default: test
+        type: choice
+        options:
+          - test
+          - dev
+      entity:
+        description: "Entity (e.g. channel#<uuid>)"
+        required: false
+        default: "channel#445b9e70-8570-43a5-8b5c-44d478b033be"
+      feature:
+        description: "Feature name"
+        required: false
+        default: "live-event-control"
+      username:
+        description: "Evertz username (demo only)"
+        required: false
+        default: "bbhaskar"
+      password:
+        description: "Evertz password (demo only — do not use in production)"
+        required: false
+        default: "Hello@123"
+
+env:
+  ENV: ${{ github.event.inputs.env || 'test' }}
+  ENTITY: ${{ github.event.inputs.entity || 'channel#445b9e70-8570-43a5-8b5c-44d478b033be' }}
+  FEATURE: ${{ github.event.inputs.feature || 'live-event-control' }}
+  REGION: us-east-1
+
+jobs:
+  premium-feature:
+    name: ${{ github.event.inputs.action }} feature usage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Authenticate
+        id: auth
+        run: |
+          TENANT=$([ "$ENV" = "dev" ] && echo "evertz-tv" || echo "evertz-qa")
+          RESPONSE=$(curl -s -X POST \
+            "https://${REGION}.${ENV}.api.evertz.io/authenticate/signin?tenant=${TENANT}" \
+            -u "${{ github.event.inputs.username }}:${{ github.event.inputs.password }}" \
+            -H "Content-Type: application/json")
+          TOKEN=$(echo "$RESPONSE" | jq -r '.IdToken')
+          if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
+            echo "Authentication failed"
+            echo "$RESPONSE"
+            exit 1
+          fi
+          echo "auth_token=$TOKEN" >> $GITHUB_OUTPUT
+
+      - name: Start Feature Usage
+        if: ${{ github.event.inputs.action == 'start' }}
+        run: |
+          BASE_URL="https://${REGION}.${ENV}.api.evertz.io/premium-feature-management"
+          curl -s -X POST \
+            "${BASE_URL}/feature/usage/start" \
+            -H "Authorization: Bearer ${{ steps.auth.outputs.auth_token }}" \
+            -H "Content-Type: application/vnd.api+json" \
+            -H "Accept: application/vnd.api+json" \
+            -d "{
+              \"data\": {
+                \"type\": \"featureUsage\",
+                \"attributes\": {
+                  \"entity\": \"${ENTITY}\",
+                  \"feature\": \"${FEATURE}\"
+                }
+              }
+            }" | jq .
+
+      - name: Stop Feature Usage
+        if: ${{ github.event.inputs.action == 'stop' }}
+        run: |
+          BASE_URL="https://${REGION}.${ENV}.api.evertz.io/premium-feature-management"
+          curl -s -X POST \
+            "${BASE_URL}/feature/usage/stop" \
+            -H "Authorization: Bearer ${{ steps.auth.outputs.auth_token }}" \
+            -H "Content-Type: application/vnd.api+json" \
+            -H "Accept: application/vnd.api+json" \
+            -d "{
+              \"data\": {
+                \"type\": \"featureUsage\",
+                \"attributes\": {
+                  \"entity\": \"${ENTITY}\",
+                  \"feature\": \"${FEATURE}\"
+                }
+              }
+            }" | jq .
+
+      - name: Get Feature Usage
+        if: ${{ github.event.inputs.action == 'get' }}
+        run: |
+          BASE_URL="https://${REGION}.${ENV}.api.evertz.io/premium-feature-management"
+          curl -sG \
+            "${BASE_URL}/feature/usage" \
+            -H "Authorization: Bearer ${{ steps.auth.outputs.auth_token }}" \
+            -H "Accept: application/vnd.api+json" \
+            --data-urlencode "entity=${ENTITY}" \
+            --data-urlencode "feature=${FEATURE}" | jq .
